@@ -1,6 +1,7 @@
 import torch
 import cv2
 import numpy as np
+from PatchMatchOrig import init_nnf, upSample_nnf, avg_vote, propagate
 
 
 def ts2np(x):
@@ -87,8 +88,31 @@ def load_image(file_A, resizeRatio=1.0):
         ori_AL = cv2.resize(ori_AL, None, fx=ratio, fy=ratio,
                             interpolation=cv2.INTER_CUBIC)
 
-    img_A = cv2.resize(ori_AL, (480, 480), fx=resizeRatio,
+    img_A = cv2.resize(ori_AL, (240, 240), fx=resizeRatio,
                        fy=resizeRatio, interpolation=cv2.INTER_CUBIC)
     print(img_A.shape)
 
     return img_A
+
+
+def get_nnf_part(arr_A, arr_AP, arr_B, arr_BP, bbox_A, bbox_B):
+    y0, x0, h0, w0 = bbox_A
+    y1, x1, h1, w1 = bbox_B
+
+    assert bbox_A[2:] == bbox_B[2:]
+
+    part_A = arr_A[y0:y0+h0, x0:x0+w0, :]
+    part_AP = arr_AP[y0:y0+h0, x0:x0+w0, :]
+    part_B = arr_B[y1:y1+h1, x1:x1+w1, :]
+    part_BP = arr_BP[y1:y1+h1, x1:x1+w1, :]
+
+
+    ann_AB = np.zeros((2,h0,w0),dtype = 'int')
+    ann_AB[0] = np.random.randint(w0, size=(h0, w0))
+    ann_AB[1] = np.random.randint(h0, size=(h0, w0))
+
+    ann_AB = propagate(ann_AB, part_A, part_AP, part_B, part_BP, 3, 5)
+    ann_AB[0]+=(h1-h0)
+    ann_AB[1]+=(w1-w0)
+
+

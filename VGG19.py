@@ -175,10 +175,10 @@ class VGG19:
                 l = copy.deepcopy(layer)
                 layers.append(l)
         net = nn.Sequential(*layers).to(device)
-        input_img = init.clone().float().to(device)
+        init = init.float().to(device)
         target = feat.detach().float().to(device)
         criterion = torch.nn.MSELoss()
-        optimizer = torch.optim.LBFGS([input_img.requires_grad_()])
+        optimizer = torch.optim.LBFGS([init.requires_grad_()])
 
         # ================
         print('Optimizing..')
@@ -187,7 +187,7 @@ class VGG19:
 
             def closure():
                 optimizer.zero_grad()
-                pred = net(input_img)
+                pred = net(init)
                 loss = criterion(pred, target)
                 loss.backward()
 
@@ -199,9 +199,9 @@ class VGG19:
             optimizer.step(closure)
         # ================
 
-        input_img.requires_grad_(False)
+        init.requires_grad_(False)
         out = self.forward_subnet(
-            input_tensor=input_img.detach(),
+            input_tensor=init.detach(),
             start_layer=start_layer, end_layer=mid_layer)
 
         return out.detach()
