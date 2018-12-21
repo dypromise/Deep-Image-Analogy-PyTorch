@@ -31,8 +31,7 @@ class VGG19:
 
         self.device = device
 
-        url = "https://s3-us-west-2.amazonaws.com/jcjohns-models/\
-        vgg19-d01eb7cb.pth"
+        url = "https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg19-d01eb7cb.pth"
         vgg19_model = models.vgg19(pretrained=False)
         vgg19_model.load_state_dict(model_zoo.load_url(url), strict=False)
         self.cnn_temp = vgg19_model.features
